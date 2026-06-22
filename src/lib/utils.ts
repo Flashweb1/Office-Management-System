@@ -23,3 +23,13 @@ export function formatDate(date: Date | string): string {
 export function formatPercent(value: number): string {
   return `${(value * 100).toFixed(1)}%`
 }
+
+export function formatChartCurrency(value: unknown): string {
+  if (typeof value !== 'number') return '$0'
+  return formatCurrency(value)
+}
+
+export function formatChartValue(value: unknown): string {
+  if (typeof value !== 'number') return '0'
+  return `$${(value / 1000).toFixed(0)}k`
+}

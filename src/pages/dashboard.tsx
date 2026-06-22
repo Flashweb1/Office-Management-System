@@ -4,7 +4,7 @@ import { StatCardSkeleton } from '@/components/ui/skeleton'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
 import { useCollection } from '@/hooks/useFirestore'
-import { formatCurrency } from '@/lib/utils'
+import { formatCurrency, formatChartCurrency, formatChartValue } from '@/lib/utils'
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   LineChart, Line,
@@ -88,8 +88,8 @@ export function DashboardPage() {
                 <LineChart data={revenueTrend}>
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(214 32% 91%)" />
                   <XAxis dataKey="month" tick={{ fontSize: 12 }} />
-                  <YAxis tick={{ fontSize: 12 }} tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`} />
-                  <Tooltip formatter={(v: number) => formatCurrency(v)} />
+                  <YAxis tick={{ fontSize: 12 }} tickFormatter={(v) => formatChartValue(v)} />
+                  <Tooltip formatter={(v) => formatChartCurrency(v)} />
                   <Line type="monotone" dataKey="revenue" stroke="hsl(221 83% 53%)" strokeWidth={2} name="Revenue" />
                   <Line type="monotone" dataKey="cost" stroke="hsl(0 84% 60%)" strokeWidth={2} name="Cost" />
                 </LineChart>
@@ -105,10 +105,10 @@ export function DashboardPage() {
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie data={arAging} cx="50%" cy="50%" innerRadius={50} outerRadius={80} dataKey="value"
-                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}>
+                    label={({ name, percent }: any) => `${name} ${((percent || 0) * 100).toFixed(0)}%`}>
                     {arAging.map((_, i) => <Cell key={i} fill={AR_COLORS[i]} />)}
                   </Pie>
-                  <Tooltip formatter={(v: number) => formatCurrency(v)} />
+                  <Tooltip formatter={(v) => formatChartCurrency(v)} />
                 </PieChart>
               </ResponsiveContainer>
             </div>
@@ -124,9 +124,9 @@ export function DashboardPage() {
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={profitChartData} layout="vertical">
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(214 32% 91%)" />
-                  <XAxis type="number" tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`} />
+                  <XAxis type="number" tickFormatter={(v) => formatChartValue(v)} />
                   <YAxis dataKey="name" type="category" width={100} tick={{ fontSize: 12 }} />
-                  <Tooltip formatter={(v: number) => formatCurrency(v)} />
+                  <Tooltip formatter={(v) => formatChartCurrency(v)} />
                   <Bar dataKey="profit" radius={[0, 4, 4, 0]}>
                     {profitChartData.map((entry, i) => (
                       <Cell key={i} fill={entry.profit >= 0 ? 'hsl(142 71% 45%)' : 'hsl(0 84% 60%)'} />

@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { useCollection } from '@/hooks/useFirestore'
-import { formatCurrency } from '@/lib/utils'
+import { formatCurrency, formatChartCurrency, formatChartValue } from '@/lib/utils'
 import { Download, BarChart3, TrendingUp, DollarSign } from 'lucide-react'
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -92,8 +92,8 @@ export function ReportsPage() {
                 <LineChart data={monthlyPnl}>
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(214 32% 91%)" />
                   <XAxis dataKey="month" tick={{ fontSize: 12 }} />
-                  <YAxis tick={{ fontSize: 12 }} tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`} />
-                  <Tooltip formatter={(v: number) => formatCurrency(v)} />
+                  <YAxis tick={{ fontSize: 12 }} tickFormatter={(v) => formatChartValue(v)} />
+                  <Tooltip formatter={(v) => formatChartCurrency(v)} />
                   <Line type="monotone" dataKey="revenue" stroke="hsl(221 83% 53%)" strokeWidth={2} name="Revenue" />
                   <Line type="monotone" dataKey="cost" stroke="hsl(0 84% 60%)" strokeWidth={2} name="Cost" />
                   <Line type="monotone" dataKey="profit" stroke="hsl(142 71% 45%)" strokeWidth={2} name="Profit" />
@@ -110,9 +110,9 @@ export function ReportsPage() {
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={laneChartData} layout="vertical">
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(214 32% 91%)" />
-                  <XAxis type="number" tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`} />
+                  <XAxis type="number" tickFormatter={(v) => formatChartValue(v)} />
                   <YAxis dataKey="lane" type="category" width={90} tick={{ fontSize: 12 }} />
-                  <Tooltip formatter={(v: number) => formatCurrency(v)} />
+                  <Tooltip formatter={(v) => formatChartCurrency(v)} />
                   <Bar dataKey="profit" fill="hsl(221 83% 53%)" radius={[0, 4, 4, 0]} />
                 </BarChart>
               </ResponsiveContainer>

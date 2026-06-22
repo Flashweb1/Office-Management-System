@@ -15,6 +15,8 @@ interface MutationCallbacks {
   onSuccess?: () => void
 }
 
+type WithOptionalId<T> = T extends { id: string } ? Omit<T, 'id'> : T
+
 export function useFirestoreMutation<T extends DocumentData>(collectionName: string, callbacks?: MutationCallbacks) {
   const queryClient = useQueryClient()
   const addToast = useToastStore((s) => s.addToast)
@@ -25,9 +27,9 @@ export function useFirestoreMutation<T extends DocumentData>(collectionName: str
   }
 
   const addMutation = useMutation({
-    mutationFn: async (data: T) => {
+    mutationFn: async (data: WithOptionalId<T>) => {
       const ref = collection(db, collectionName)
-      await addDoc(ref, { ...data, createdAt: serverTimestamp() })
+      await addDoc(ref, { ...data, createdAt: serverTimestamp() } as any)
     },
     onSuccess: () => {
       invalidate()
@@ -38,8 +40,8 @@ export function useFirestoreMutation<T extends DocumentData>(collectionName: str
 
   const updateMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: Partial<T> }) => {
-      const ref = doc(db, collectionName, id)
-      await updateDoc(ref, data)
+      const ref = doc(db, collectionName, id) as any
+      await updateDoc(ref, data as any)
     },
     onSuccess: () => {
       invalidate()
@@ -50,7 +52,7 @@ export function useFirestoreMutation<T extends DocumentData>(collectionName: str
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      const ref = doc(db, collectionName, id)
+      const ref = doc(db, collectionName, id) as any
       await deleteDoc(ref)
     },
     onSuccess: () => {
