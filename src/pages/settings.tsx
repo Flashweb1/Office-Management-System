@@ -1,10 +1,104 @@
+import { useState, useEffect } from 'react'
+import { doc, getDoc, updateDoc } from 'firebase/firestore'
+import { updatePassword, sendEmailVerification } from 'firebase/auth'
+import { db } from '@/services/firebase'
+import { auth } from '@/services/firebase'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
+import { useAuthStore } from '@/store/authStore'
+import { useToastStore } from '@/store/toastStore'
+import { Mail, CheckCircle, XCircle, RefreshCw } from 'lucide-react'
 
 export function SettingsPage() {
+  const { user, setUser } = useAuthStore()
+  const addToast = useToastStore((s) => s.addToast)
+  const [name, setName] = useState(user?.name || '')
+  const [phone, setPhone] = useState('')
+  const [saving, setSaving] = useState(false)
+
+  const [currentPassword, setCurrentPassword] = useState('')
+  const [newPassword, setNewPassword] = useState('')
+  const [confirmNewPassword, setConfirmNewPassword] = useState('')
+  const [changingPassword, setChangingPassword] = useState(false)
+
+  const [sendingVerification, setSendingVerification] = useState(false)
+
+  useEffect(() => {
+    if (user && !user.avatar) {
+      const fetchProfile = async () => {
+        try {
+          const userDoc = await getDoc(doc(db, 'users', user.id))
+          if (userDoc.exists()) {
+            const data = userDoc.data()
+            if (data.phone) setPhone(data.phone)
+          }
+        } catch {}
+      }
+      fetchProfile()
+    }
+  }, [user])
+
+  const handleSaveProfile = async () => {
+    if (!user) return
+    setSaving(true)
+    try {
+      await updateDoc(doc(db, 'users', user.id), { name, phone })
+      setUser({ ...user, name })
+      addToast('Profile updated successfully.', 'success')
+    } catch (err: any) {
+      addToast(err.message || 'Failed to update profile.', 'error')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const handleChangePassword = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (newPassword !== confirmNewPassword) {
+      addToast('New passwords do not match.', 'error')
+      return
+    }
+    if (newPassword.length < 6) {
+      addToast('Password must be at least 6 characters.', 'error')
+      return
+    }
+    setChangingPassword(true)
+    try {
+      if (auth.currentUser) {
+        await updatePassword(auth.currentUser, newPassword)
+        addToast('Password changed successfully.', 'success')
+        setCurrentPassword('')
+        setNewPassword('')
+        setConfirmNewPassword('')
+      }
+    } catch (err: any) {
+      addToast(err.message || 'Failed to change password.', 'error')
+    } finally {
+      setChangingPassword(false)
+    }
+  }
+
+  const handleResendVerification = async () => {
+    setSendingVerification(true)
+    try {
+      if (auth.currentUser) {
+        await sendEmailVerification(auth.currentUser)
+        addToast('Verification email sent. Check your inbox.', 'success')
+      }
+    } catch (err: any) {
+      addToast(err.message || 'Failed to send verification email.', 'error')
+    } finally {
+      setSendingVerification(false)
+    }
+  }
+
+  if (!user) return null
+
+  const isVerified = auth.currentUser?.emailVerified
+
   return (
     <div className="space-y-6 max-w-2xl">
       <div>
@@ -21,46 +115,59 @@ export function SettingsPage() {
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
               <Label>Full Name</Label>
-              <Input defaultValue="CEO User" />
+              <Input value={name} onChange={(e) => setName(e.target.value)} />
             </div>
             <div>
               <Label>Email</Label>
-              <Input defaultValue="ceo@logicommand.com" type="email" />
+              <div className="flex items-center gap-2">
+                <Input value={user.email} type="email" disabled className="flex-1" />
+                {isVerified ? (
+                  <Badge variant="success" className="shrink-0"><CheckCircle className="w-3 h-3 mr-1" /> Verified</Badge>
+                ) : (
+                  <Badge variant="warning" className="shrink-0"><XCircle className="w-3 h-3 mr-1" /> Unverified</Badge>
+                )}
+              </div>
             </div>
             <div>
               <Label>Phone</Label>
-              <Input defaultValue="+1-555-0001" />
+              <Input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+1-555-0000" />
             </div>
             <div>
               <Label>Role</Label>
-              <Input defaultValue="CEO" disabled />
+              <Input value={user.role?.replace('_', ' ') || ''} disabled />
             </div>
           </div>
-          <Button>Save Changes</Button>
+          {!isVerified && (
+            <Button variant="outline" size="sm" onClick={handleResendVerification} disabled={sendingVerification}>
+              <Mail className="w-3.5 h-3.5 mr-1.5" />
+              {sendingVerification ? 'Sending...' : 'Resend verification email'}
+            </Button>
+          )}
+          <Button onClick={handleSaveProfile} disabled={saving}>
+            {saving ? 'Saving...' : 'Save Changes'}
+          </Button>
         </CardContent>
       </Card>
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Company</CardTitle>
-          <CardDescription>Your logistics company details.</CardDescription>
+          <CardTitle className="text-base">Change Password</CardTitle>
+          <CardDescription>Update your account password.</CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid gap-4 sm:grid-cols-2">
+        <CardContent>
+          <form onSubmit={handleChangePassword} className="space-y-4">
             <div>
-              <Label>Company Name</Label>
-              <Input defaultValue="LogiCommand Logistics" />
+              <Label>New Password</Label>
+              <Input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="At least 6 characters" minLength={6} required />
             </div>
             <div>
-              <Label>Tax ID / EIN</Label>
-              <Input defaultValue="XX-XXXXXXX" />
+              <Label>Confirm New Password</Label>
+              <Input type="password" value={confirmNewPassword} onChange={(e) => setConfirmNewPassword(e.target.value)} placeholder="Repeat new password" required />
             </div>
-            <div className="sm:col-span-2">
-              <Label>Address</Label>
-              <Input defaultValue="123 Logistics Ave, Suite 100, New York, NY 10001" />
-            </div>
-          </div>
-          <Button>Save Changes</Button>
+            <Button type="submit" disabled={changingPassword}>
+              {changingPassword ? 'Changing...' : 'Change Password'}
+            </Button>
+          </form>
         </CardContent>
       </Card>
 

@@ -15,6 +15,7 @@ import {
   X,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 import type { Role } from '@/types'
 
 interface SidebarProps {
@@ -30,14 +31,14 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
-  { label: 'Dashboard', path: '/dashboard', icon: LayoutDashboard, roles: ['CEO', 'OPS_MANAGER', 'FINANCE', 'SALES', 'SUPPORT'] },
+  { label: 'Dashboard', path: '/dashboard', icon: LayoutDashboard, roles: ['CEO', 'OPS_MANAGER', 'FINANCE', 'SALES', 'SUPPORT', 'PENDING'] },
   { label: 'Staff', path: '/staff', icon: Users, roles: ['CEO'] },
   { label: 'Customers', path: '/customers', icon: Building2, roles: ['CEO', 'OPS_MANAGER', 'FINANCE', 'SALES', 'SUPPORT'] },
   { label: 'Shipments', path: '/shipments', icon: Truck, roles: ['CEO', 'OPS_MANAGER', 'SALES'] },
   { label: 'Fleet', path: '/fleet', icon: ClipboardList, roles: ['CEO', 'OPS_MANAGER'] },
   { label: 'Invoices', path: '/invoices', icon: FileText, roles: ['CEO', 'FINANCE'] },
   { label: 'Reports', path: '/reports', icon: BarChart3, roles: ['CEO', 'FINANCE'] },
-  { label: 'Settings', path: '/settings', icon: Settings, roles: ['CEO', 'OPS_MANAGER', 'FINANCE', 'SALES', 'SUPPORT'] },
+  { label: 'Settings', path: '/settings', icon: Settings, roles: ['CEO', 'OPS_MANAGER', 'FINANCE', 'SALES', 'SUPPORT', 'PENDING'] },
 ]
 
 export function Sidebar({ open, onClose }: SidebarProps) {
@@ -97,7 +98,13 @@ export function Sidebar({ open, onClose }: SidebarProps) {
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium truncate">{user?.name || 'User'}</p>
-                <p className="text-xs text-sidebar-foreground/60 truncate">{user?.role?.replace('_', ' ')}</p>
+                <p className="text-xs text-sidebar-foreground/60 truncate">
+                  {user?.role === 'PENDING' ? (
+                    <Badge variant="warning">Pending Approval</Badge>
+                  ) : (
+                    user?.role?.replace('_', ' ')
+                  )}
+                </p>
               </div>
             </div>
             <Button variant="ghost" size="sm" className="w-full justify-start text-sidebar-foreground/70 hover:text-sidebar-foreground" onClick={logout}>

@@ -5,6 +5,8 @@ import { ProtectedRoute } from '@/components/layout/protected-route'
 import { AIChatWidget } from '@/components/ai/ai-chat-widget'
 import { ToastContainer } from '@/components/ui/toast'
 import { LoginPage } from '@/pages/login'
+import { SignupPage } from '@/pages/signup'
+import { VerifyEmailPage } from '@/pages/verify-email'
 import { DashboardPage } from '@/pages/dashboard'
 import { StaffPage } from '@/pages/staff'
 import { CustomersPage } from '@/pages/customers'
@@ -37,6 +39,8 @@ function AppRoutes() {
   return (
     <Routes>
       <Route path="/login" element={user ? <Navigate to="/dashboard" replace /> : <LoginPage />} />
+      <Route path="/signup" element={user ? <Navigate to="/dashboard" replace /> : <SignupPage />} />
+      <Route path="/verify-email" element={user ? <VerifyEmailPage /> : <Navigate to="/login" replace />} />
       <Route
         element={
           <ProtectedRoute>

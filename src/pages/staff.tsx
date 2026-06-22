@@ -1,18 +1,32 @@
 import { useState } from 'react'
+import { doc, updateDoc } from 'firebase/firestore'
+import { db } from '@/services/firebase'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Select } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
 import { StatCard } from '@/components/ui/stat-card'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
+import { Dialog, DialogContent, DialogFooter } from '@/components/ui/dialog'
 import { StaffForm } from '@/components/forms/staff-form'
 import { PageHeader } from '@/components/ui/page-header'
 import { TableSkeleton } from '@/components/ui/skeleton'
 import { useCollection } from '@/hooks/useFirestore'
 import { useFirestoreMutation } from '@/hooks/useFirestoreMutation'
-import { Search, Mail, Phone, MoreHorizontal, Edit3, Trash2 } from 'lucide-react'
-import type { Staff } from '@/types'
+import { useToastStore } from '@/store/toastStore'
+import { Search, Mail, Phone, MoreHorizontal, Edit3, Trash2, UserCheck } from 'lucide-react'
+import { useQueryClient } from '@tanstack/react-query'
+import type { Staff, User } from '@/types'
+
+const ROLES = [
+  { value: 'CEO', label: 'CEO' },
+  { value: 'OPS_MANAGER', label: 'Ops Manager' },
+  { value: 'FINANCE', label: 'Finance' },
+  { value: 'SALES', label: 'Sales' },
+  { value: 'SUPPORT', label: 'Support' },
+]
 
 export function StaffPage() {
   const [search, setSearch] = useState('')
@@ -20,9 +34,17 @@ export function StaffPage() {
   const [editingStaff, setEditingStaff] = useState<Staff | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<Staff | null>(null)
   const [menuOpen, setMenuOpen] = useState<string | null>(null)
+  const [approveTarget, setApproveTarget] = useState<User | null>(null)
+  const [approveRole, setApproveRole] = useState('SALES')
+  const [approving, setApproving] = useState(false)
+  const addToast = useToastStore((s) => s.addToast)
+  const queryClient = useQueryClient()
 
   const { data: staff, isLoading } = useCollection<Staff>('staff', {
     orderByFilter: ['hireDate', 'desc'],
+  })
+  const { data: pendingUsers } = useCollection<User>('users', {
+    whereFilters: [['role', '==', 'PENDING']],
   })
   const { add, update, remove } = useFirestoreMutation<Staff>('staff')
 
@@ -70,6 +92,21 @@ export function StaffPage() {
     setDeleteTarget(null)
   }
 
+  const handleApprove = async () => {
+    if (!approveTarget) return
+    setApproving(true)
+    try {
+      await updateDoc(doc(db, 'users', approveTarget.id), { role: approveRole })
+      addToast(`${approveTarget.name} approved as ${ROLES.find(r => r.value === approveRole)?.label}`, 'success')
+      queryClient.invalidateQueries({ queryKey: ['users'] })
+      setApproveTarget(null)
+    } catch (err: any) {
+      addToast(err.message || 'Failed to approve user', 'error')
+    } finally {
+      setApproving(false)
+    }
+  }
+
   const activeStaff = (staff || []).filter((s) => s.status === 'active').length
   const totalPayroll = (staff || []).filter(s => s.status === 'active').reduce((sum, s) => sum + (s.salary || 0), 0)
 
@@ -82,6 +119,52 @@ export function StaffPage() {
         <StatCard title="Active" value={String(activeStaff)} variant="success" />
         <StatCard title="Monthly Payroll" value={`$${(totalPayroll / 12 / 1000).toFixed(0)}k`} />
       </div>
+
+      {pendingUsers && pendingUsers.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2">
+              <UserCheck className="w-4 h-4 text-primary" />
+              Pending Approvals
+              <Badge variant="warning">{pendingUsers.length}</Badge>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Email</TableHead>
+                  <TableHead>Role</TableHead>
+                  <TableHead className="w-40"></TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {pendingUsers.map((u) => (
+                  <TableRow key={u.id}>
+                    <TableCell>
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center text-sm font-medium">
+                          {u.name?.split(' ').map(n => n[0]).join('')}
+                        </div>
+                        <span className="font-medium">{u.name}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">{u.email}</TableCell>
+                    <TableCell><Badge variant="warning">Pending</Badge></TableCell>
+                    <TableCell>
+                      <Button size="sm" onClick={() => { setApproveTarget(u); setApproveRole('SALES') }}>
+                        <UserCheck className="w-3.5 h-3.5 mr-1.5" />
+                        Approve
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      )}
 
       <Card>
         <CardHeader>
@@ -182,6 +265,21 @@ export function StaffPage() {
         />
       )}
       <ConfirmDialog open={!!deleteTarget} onClose={() => setDeleteTarget(null)} onConfirm={handleDelete} title="Remove Staff" message={`Remove ${deleteTarget?.name} from the system?`} confirmLabel="Remove" />
+
+      <Dialog open={!!approveTarget} onClose={() => setApproveTarget(null)} title="Approve User" description={`Assign a role for ${approveTarget?.name}`}>
+        <DialogContent className="space-y-4">
+          <div>
+            <label className="text-sm font-medium mb-1 block">Role</label>
+            <Select value={approveRole} onChange={(e) => setApproveRole(e.target.value)} options={ROLES} />
+          </div>
+        </DialogContent>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => setApproveTarget(null)}>Cancel</Button>
+          <Button onClick={handleApprove} disabled={approving}>
+            {approving ? 'Approving...' : 'Approve'}
+          </Button>
+        </DialogFooter>
+      </Dialog>
     </div>
   )
 }

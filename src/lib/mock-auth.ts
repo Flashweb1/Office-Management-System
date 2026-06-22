@@ -1,4 +1,4 @@
-import type { User } from '@/types'
+import type { User, Role } from '@/types'
 
 export const MOCK_USER: User = {
   id: 'mock-ceo-1',
@@ -7,7 +7,7 @@ export const MOCK_USER: User = {
   role: 'CEO',
 }
 
-export const MOCK_USERS: Record<string, { password: string; user: User }> = {
+let _mockUsers: Record<string, { password: string; user: User }> = {
   'ceo@logicommand.com': {
     password: 'password123',
     user: { id: 'mock-ceo-1', email: 'ceo@logicommand.com', name: 'Sarah CEO', role: 'CEO' },
@@ -28,4 +28,19 @@ export const MOCK_USERS: Record<string, { password: string; user: User }> = {
     password: 'password123',
     user: { id: 'mock-sup-1', email: 'support@logicommand.com', name: 'Emily Support', role: 'SUPPORT' },
   },
+}
+
+export function getMockUsers(): Record<string, { password: string; user: User }> {
+  return _mockUsers
+}
+
+export function addMockUser(name: string, email: string, password: string): User {
+  const user: User = {
+    id: `mock-${Date.now()}`,
+    email,
+    name,
+    role: 'PENDING',
+  }
+  _mockUsers[email] = { password, user }
+  return user
 }

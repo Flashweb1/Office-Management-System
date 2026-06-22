@@ -28,7 +28,7 @@ export function LandingPage() {
           </div>
           <div className="flex items-center gap-3">
             <Button variant="ghost" size="sm" onClick={() => navigate('/login')}>Sign In</Button>
-            <Button size="sm" onClick={() => navigate('/login')}>Get Started</Button>
+            <Button size="sm" onClick={() => navigate('/signup')}>Get Started</Button>
           </div>
         </div>
       </header>
@@ -43,7 +43,7 @@ export function LandingPage() {
           Your logistics command center.
         </p>
         <div className="mt-8 flex items-center gap-4">
-          <Button size="lg" onClick={() => navigate('/login')}>
+          <Button size="lg" onClick={() => navigate('/signup')}>
             Get Started <ArrowRight className="w-4 h-4 ml-2" />
           </Button>
           <Button variant="outline" size="lg" onClick={() => navigate('/login')}>

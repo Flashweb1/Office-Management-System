@@ -17,11 +17,19 @@ service cloud.firestore {
       return isAuth() && getUserRole() in roles;
     }
 
-    // Users collection - admins manage all, users read their own
+    // Users collection
+    // - Anyone authenticated can read
+    // - User can create their own doc during signup
+    // - User can update their own profile (name) but NOT role; CEO can update anything
+    // - Only CEO can delete
     match /users/{userId} {
       allow read: if isAuth();
-      allow write: if hasRole(['CEO']);
-      allow create: if isAuth(); // Allow user creation during signup
+      allow create: if isAuth() && request.auth.uid == userId;
+      allow update: if isAuth() && (
+        (request.auth.uid == userId && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role']))
+        || hasRole(['CEO'])
+      );
+      allow delete: if hasRole(['CEO']);
     }
 
     // Staff - CEO only
@@ -71,19 +79,19 @@ service cloud.firestore {
       allow update, delete: if hasRole(['CEO']);
     }
 
-    // Dashboard metrics - pre-computed by Cloud Function, all roles can read
+    // Dashboard metrics - all roles including PENDING can read
     match /dashboardMetrics/{docId} {
       allow read: if isAuth();
       allow write: if false; // Only Cloud Functions can write
     }
 
-    // Alerts - all roles can read, Cloud Functions write
+    // Alerts - all roles including PENDING can read
     match /alerts/{docId} {
       allow read: if isAuth();
       allow write: if false; // Only Cloud Functions can write
     }
 
-    // AI Insights - all roles can read
+    // AI Insights - all roles including PENDING can read
     match /aiInsights/{docId} {
       allow read: if isAuth();
       allow write: if false; // Only Cloud Functions can write

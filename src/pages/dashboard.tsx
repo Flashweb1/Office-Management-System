@@ -4,6 +4,7 @@ import { StatCardSkeleton } from '@/components/ui/skeleton'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
 import { useCollection } from '@/hooks/useFirestore'
+import { useAuthStore } from '@/store/authStore'
 import { formatCurrency, formatChartCurrency, formatChartValue } from '@/lib/utils'
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -12,10 +13,12 @@ import {
 } from 'recharts'
 import type { Shipment, Customer, Invoice, Alert } from '@/types'
 import { AIInsights } from '@/components/ai/ai-insights'
+import { Clock } from 'lucide-react'
 
 const AR_COLORS = ['hsl(142,71%,45%)', 'hsl(38,92%,50%)', 'hsl(28,92%,55%)', 'hsl(0,84%,60%)']
 
 export function DashboardPage() {
+  const { user } = useAuthStore()
   const { data: shipments, isLoading: shipmentsLoading } = useCollection<Shipment>('shipments')
   const { data: customers } = useCollection<Customer>('customers')
   const { data: invoices } = useCollection<Invoice>('invoices')
@@ -70,6 +73,13 @@ export function DashboardPage() {
         <h1 className="text-2xl font-bold tracking-tight">Executive Dashboard</h1>
         <p className="text-muted-foreground">Real-time business health and performance overview.</p>
       </div>
+
+      {user?.role === 'PENDING' && (
+        <div className="flex items-center gap-3 px-4 py-3 rounded-lg border border-primary/30 bg-primary/5 text-sm">
+          <Clock className="w-4 h-4 text-primary shrink-0" />
+          <p>Your account is pending admin approval. You'll have limited access until a CEO activates your account.</p>
+        </div>
+      )}
 
       <div className="grid gap-4 grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
         <StatCard title="Gross Margin" value={`${grossMargin.toFixed(1)}%`} variant={grossMargin < 15 ? 'danger' : grossMargin < 20 ? 'warning' : 'success'} />
