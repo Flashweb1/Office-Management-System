@@ -13,6 +13,7 @@ import { useCollection } from '@/hooks/useFirestore'
 import { useFirestoreMutation } from '@/hooks/useFirestoreMutation'
 import { Search, Download, MoreHorizontal, Trash2 } from 'lucide-react'
 import { formatCurrency } from '@/lib/utils'
+import { useNavigate } from 'react-router-dom'
 import type { Invoice } from '@/types'
 
 export function InvoicesPage() {
@@ -25,6 +26,7 @@ export function InvoicesPage() {
     orderByFilter: ['createdAt', 'desc'],
   })
   const { add, remove } = useFirestoreMutation<Invoice>('invoices')
+  const navigate = useNavigate()
 
   const filtered = (invoices || []).filter((inv) =>
     inv.id?.toLowerCase().includes(search.toLowerCase()) ||
@@ -33,11 +35,13 @@ export function InvoicesPage() {
 
   const handleAdd = (data: any) => {
     add({
+      customerId: data.customerId || '',
       customerName: data.customerName,
       amount: Number(data.amount),
       dueDate: data.dueDate,
       paid: data.status === 'paid',
       shipmentId: data.shipmentId || null,
+      createdAt: new Date().toISOString(),
     })
     setShowForm(false)
   }
@@ -114,6 +118,11 @@ export function InvoicesPage() {
                           <>
                             <div className="fixed inset-0 z-10" onClick={() => setMenuOpen(null)} />
                             <div className="absolute right-0 top-full mt-1 z-20 w-36 rounded-md border bg-card shadow-lg">
+                              {inv.paid && (
+                                <button className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-accent" onClick={() => { navigate(`/invoices/${inv.id}/receipt`); setMenuOpen(null) }}>
+                                  <Download className="w-3.5 h-3.5" /> Receipt
+                                </button>
+                              )}
                               <button className="w-full flex items-center gap-2 px-3 py-2 text-sm text-destructive hover:bg-accent" onClick={() => { setDeleteTarget(inv); setMenuOpen(null) }}>
                                 <Trash2 className="w-3.5 h-3.5" /> Delete
                               </button>

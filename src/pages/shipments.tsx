@@ -41,6 +41,7 @@ export function ShipmentsPage() {
 
   const handleAdd = (data: any) => {
     add({
+      customerId: data.customerId || '',
       customerName: data.customerName,
       lane: data.lane,
       pickupDate: data.pickupDate,
@@ -49,6 +50,7 @@ export function ShipmentsPage() {
       cost: Number(data.cost),
       status: data.status,
       notes: data.notes,
+      createdAt: new Date().toISOString(),
     })
     setShowForm(false)
   }

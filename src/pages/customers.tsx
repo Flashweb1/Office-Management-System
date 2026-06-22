@@ -46,6 +46,7 @@ export function CustomersPage() {
       paymentTerms: data.paymentTerms,
       onHold: false,
       notes: data.notes,
+      createdAt: new Date().toISOString(),
     })
     setShowForm(false)
   }

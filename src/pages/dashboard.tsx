@@ -11,6 +11,7 @@ import {
   PieChart, Pie, Cell,
 } from 'recharts'
 import type { Shipment, Customer, Invoice, Alert } from '@/types'
+import { AIInsights } from '@/components/ai/ai-insights'
 
 const AR_COLORS = ['hsl(142,71%,45%)', 'hsl(38,92%,50%)', 'hsl(28,92%,55%)', 'hsl(0,84%,60%)']
 
@@ -159,6 +160,8 @@ export function DashboardPage() {
           </CardContent>
         </Card>
       </div>
+
+      <AIInsights />
 
       {negativeMarginShipments.length > 0 && (
         <Card>

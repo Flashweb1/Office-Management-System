@@ -34,6 +34,7 @@ export function StaffPage() {
 
   const handleAdd = (data: any) => {
     add({
+      userId: data.userId || '',
       name: data.name,
       email: data.email,
       phone: data.phone,

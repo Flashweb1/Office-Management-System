@@ -15,6 +15,7 @@ import { FleetPage } from '@/pages/fleet'
 import { InvoicesPage } from '@/pages/invoices'
 import { ReportsPage } from '@/pages/reports'
 import { SettingsPage } from '@/pages/settings'
+import { ReceiptPage } from '@/pages/receipt'
 import { useAuthStore } from '@/store/authStore'
 import { useAuth } from '@/hooks/useAuth'
 
@@ -60,6 +61,14 @@ function AppRoutes() {
         <Route path="/reports" element={<ReportsPage />} />
         <Route path="/settings" element={<SettingsPage />} />
       </Route>
+      <Route
+        path="/invoices/:id/receipt"
+        element={
+          <ProtectedRoute>
+            <ReceiptPage />
+          </ProtectedRoute>
+        }
+      />
       <Route path="/" element={<Navigate to="/dashboard" replace />} />
       <Route path="*" element={<Navigate to="/dashboard" replace />} />
     </Routes>
