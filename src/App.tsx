@@ -16,6 +16,7 @@ import { InvoicesPage } from '@/pages/invoices'
 import { ReportsPage } from '@/pages/reports'
 import { SettingsPage } from '@/pages/settings'
 import { ReceiptPage } from '@/pages/receipt'
+import { LandingPage } from '@/pages/landing'
 import { useAuthStore } from '@/store/authStore'
 import { useAuth } from '@/hooks/useAuth'
 
@@ -69,7 +70,7 @@ function AppRoutes() {
           </ProtectedRoute>
         }
       />
-      <Route path="/" element={<Navigate to="/dashboard" replace />} />
+      <Route path="/" element={user ? <Navigate to="/dashboard" replace /> : <LandingPage />} />
       <Route path="*" element={<Navigate to="/dashboard" replace />} />
     </Routes>
   )
