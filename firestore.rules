@@ -1,0 +1,92 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper: check if user is authenticated
+    function isAuth() {
+      return request.auth != null;
+    }
+
+    // Helper: get user role from Firestore
+    function getUserRole() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+    }
+
+    // Helper: check if user has one of the allowed roles
+    function hasRole(roles) {
+      return isAuth() && getUserRole() in roles;
+    }
+
+    // Users collection - admins manage all, users read their own
+    match /users/{userId} {
+      allow read: if isAuth();
+      allow write: if hasRole(['CEO']);
+      allow create: if isAuth(); // Allow user creation during signup
+    }
+
+    // Staff - CEO only
+    match /staff/{docId} {
+      allow read: if hasRole(['CEO']);
+      allow write: if hasRole(['CEO']);
+    }
+
+    // Customers - all roles can read, CEO/Sales/Support can write
+    match /customers/{docId} {
+      allow read: if hasRole(['CEO', 'OPS_MANAGER', 'FINANCE', 'SALES', 'SUPPORT']);
+      allow write: if hasRole(['CEO', 'SALES']);
+    }
+
+    // Shipments - CEO/Ops/Sales can read, CEO/Ops can write
+    match /shipments/{docId} {
+      allow read: if hasRole(['CEO', 'OPS_MANAGER', 'SALES']);
+      allow write: if hasRole(['CEO', 'OPS_MANAGER']);
+    }
+
+    // Drivers & Trucks - CEO/Ops
+    match /drivers/{docId} {
+      allow read: if hasRole(['CEO', 'OPS_MANAGER']);
+      allow write: if hasRole(['CEO', 'OPS_MANAGER']);
+    }
+    match /trucks/{docId} {
+      allow read: if hasRole(['CEO', 'OPS_MANAGER']);
+      allow write: if hasRole(['CEO', 'OPS_MANAGER']);
+    }
+
+    // Invoices - CEO/Finance
+    match /invoices/{docId} {
+      allow read: if hasRole(['CEO', 'FINANCE']);
+      allow write: if hasRole(['CEO', 'FINANCE']);
+    }
+
+    // Expenses - CEO/Finance
+    match /expenses/{docId} {
+      allow read: if hasRole(['CEO', 'FINANCE']);
+      allow write: if hasRole(['CEO', 'FINANCE']);
+    }
+
+    // Contact logs - all roles can read, all can write
+    match /contactLogs/{docId} {
+      allow read: if hasRole(['CEO', 'OPS_MANAGER', 'FINANCE', 'SALES', 'SUPPORT']);
+      allow create: if isAuth();
+      allow update, delete: if hasRole(['CEO']);
+    }
+
+    // Dashboard metrics - pre-computed by Cloud Function, all roles can read
+    match /dashboardMetrics/{docId} {
+      allow read: if isAuth();
+      allow write: if false; // Only Cloud Functions can write
+    }
+
+    // Alerts - all roles can read, Cloud Functions write
+    match /alerts/{docId} {
+      allow read: if isAuth();
+      allow write: if false; // Only Cloud Functions can write
+    }
+
+    // AI Insights - all roles can read
+    match /aiInsights/{docId} {
+      allow read: if isAuth();
+      allow write: if false; // Only Cloud Functions can write
+    }
+  }
+}
