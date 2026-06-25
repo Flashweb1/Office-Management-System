@@ -59,19 +59,23 @@ export function useAuth() {
 
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
-        const userRef = doc(db, 'users', firebaseUser.uid)
-        const userDoc = await getDoc(userRef)
-        if (userDoc.exists()) {
-          const userData = userDoc.data() as Omit<User, 'id'>
-          setUser({ id: firebaseUser.uid, ...userData })
-        } else {
-          const newUser: Omit<User, 'id'> = {
-            name: firebaseUser.displayName || firebaseUser.email?.split('@')[0] || 'User',
-            email: firebaseUser.email || '',
-            role: 'PENDING',
+        try {
+          const userRef = doc(db, 'users', firebaseUser.uid)
+          const userDoc = await getDoc(userRef)
+          if (userDoc.exists()) {
+            const userData = userDoc.data() as Omit<User, 'id'>
+            setUser({ id: firebaseUser.uid, ...userData })
+          } else {
+            const newUser: Omit<User, 'id'> = {
+              name: firebaseUser.displayName || firebaseUser.email?.split('@')[0] || 'User',
+              email: firebaseUser.email || '',
+              role: 'PENDING',
+            }
+            await setDoc(userRef, newUser)
+            setUser({ id: firebaseUser.uid, ...newUser })
           }
-          await setDoc(userRef, newUser)
-          setUser({ id: firebaseUser.uid, ...newUser })
+        } catch (err) {
+          console.error('Error loading user document:', err)
         }
       } else {
         clearUser()
@@ -81,11 +85,15 @@ export function useAuth() {
   }, [setUser, setLoading, clearUser])
 
   async function loadUserFromFirestore(firebaseUid: string) {
-    const userRef = doc(db, 'users', firebaseUid)
-    const userDoc = await getDoc(userRef)
-    if (userDoc.exists()) {
-      setUser({ id: firebaseUid, ...(userDoc.data() as Omit<User, 'id'>) })
-      return true
+    try {
+      const userRef = doc(db, 'users', firebaseUid)
+      const userDoc = await getDoc(userRef)
+      if (userDoc.exists()) {
+        setUser({ id: firebaseUid, ...(userDoc.data() as Omit<User, 'id'>) })
+        return true
+      }
+    } catch (err) {
+      console.error('Error loading user from Firestore:', err)
     }
     return false
   }
