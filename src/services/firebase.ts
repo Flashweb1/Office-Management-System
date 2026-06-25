@@ -1,8 +1,8 @@
-import { initializeApp } from 'firebase/app'
+import { initializeApp, getApps } from 'firebase/app'
 import { getAuth } from 'firebase/auth'
 import { getFirestore } from 'firebase/firestore'
-import { getFunctions } from 'firebase/functions'
 import { getStorage } from 'firebase/storage'
+import { getFunctions } from 'firebase/functions'
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -13,10 +13,25 @@ const firebaseConfig = {
   appId: import.meta.env.VITE_FIREBASE_APP_ID,
 }
 
-const app = initializeApp(firebaseConfig)
+function createFirebase() {
+  try {
+    const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig)
+    return {
+      auth: getAuth(app),
+      db: getFirestore(app),
+      storage: getStorage(app),
+      functions: getFunctions(app),
+    }
+  } catch (e) {
+    console.warn('Firebase init failed, mock fallback:', e)
+    const app = initializeApp({ apiKey: 'mock', projectId: 'mock' }, 'fallback')
+    return {
+      auth: getAuth(app),
+      db: getFirestore(app),
+      storage: getStorage(app),
+      functions: getFunctions(app),
+    }
+  }
+}
 
-export const auth = getAuth(app)
-export const db = getFirestore(app)
-export const functions = getFunctions(app)
-export const storage = getStorage(app)
-export default app
+export const { auth, db, storage, functions } = createFirebase()
