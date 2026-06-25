@@ -96,5 +96,35 @@ service cloud.firestore {
       allow read: if isAuth();
       allow write: if false; // Only Cloud Functions can write
     }
+
+    // Payroll - CEO/Finance can read, CEO can write
+    match /payroll_runs/{docId} {
+      allow read: if hasRole(['CEO', 'FINANCE']);
+      allow write: if hasRole(['CEO']);
+    }
+    match /pay_stubs/{docId} {
+      allow read: if hasRole(['CEO', 'FINANCE']);
+      allow write: if hasRole(['CEO']);
+    }
+
+    // Time off - all roles can read, all can create, CEO can approve/delete
+    match /time_off/{docId} {
+      allow read: if isAuth();
+      allow create: if isAuth();
+      allow update: if isAuth();
+      allow delete: if hasRole(['CEO']);
+    }
+
+    // Performance reviews - CEO/Ops can read/write
+    match /reviews/{docId} {
+      allow read: if hasRole(['CEO', 'OPS_MANAGER']);
+      allow write: if hasRole(['CEO', 'OPS_MANAGER']);
+    }
+
+    // Company settings - all auth can read, CEO can write
+    match /company/{docId} {
+      allow read: if isAuth();
+      allow write: if hasRole(['CEO']);
+    }
   }
 }

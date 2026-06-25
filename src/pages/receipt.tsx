@@ -1,14 +1,15 @@
 import { useParams, useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { useDocument } from '@/hooks/useFirestore'
+import { useCompanySettings } from '@/hooks/useCompanySettings'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import { ArrowLeft, Printer } from 'lucide-react'
 
 export function ReceiptPage() {
   const { id } = useParams()
   const navigate = useNavigate()
-
   const { data: inv } = useDocument<any>('invoices', id)
+  const { settings } = useCompanySettings()
 
   const handlePrint = () => window.print()
 
@@ -34,9 +35,9 @@ export function ReceiptPage() {
 
       <div className="border rounded-lg bg-card p-8 shadow-sm receipt">
         <div className="text-center mb-6 pb-6 border-b">
-          <h1 className="text-2xl font-bold">LogiCommand</h1>
-          <p className="text-sm text-muted-foreground">Logistics Enterprise Management</p>
-          <p className="text-xs text-muted-foreground mt-1">123 Logistics Ave, New York, NY 10001</p>
+          <h1 className="text-2xl font-bold">{settings.name}</h1>
+          <p className="text-sm text-muted-foreground">{settings.tagline}</p>
+          <p className="text-xs text-muted-foreground mt-1">{settings.address}</p>
         </div>
 
         <div className="flex justify-between items-start mb-6">
@@ -96,7 +97,7 @@ export function ReceiptPage() {
 
         <div className="mt-6 pt-6 border-t text-center text-xs text-muted-foreground">
           <p>Thank you for your business!</p>
-          <p className="mt-1">LogiCommand Logistics — office-management-system-f345e</p>
+          <p className="mt-1">{settings.name} Logistics</p>
         </div>
       </div>
 

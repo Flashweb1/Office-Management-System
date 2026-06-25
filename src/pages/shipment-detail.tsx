@@ -1,26 +1,49 @@
 import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { StatCard } from '@/components/ui/stat-card'
-import { ConfirmDialog } from '@/components/ui/confirm-dialog'
-import { Skeleton } from '@/components/ui/skeleton'
+import { collection, query, where, getDocs, addDoc, doc as fbDoc, deleteDoc } from 'firebase/firestore'
+import { db } from '@/services/firebase'
 import { useDocument } from '@/hooks/useFirestore'
 import { useFirestoreMutation } from '@/hooks/useFirestoreMutation'
 import { formatCurrency } from '@/lib/utils'
-import { ArrowLeft, Edit3, Trash2 } from 'lucide-react'
+import { ArrowLeft, Trash2, Paperclip } from 'lucide-react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import type { Shipment } from '@/types'
 
 export function ShipmentDetailPage() {
   const { id } = useParams()
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
   const [showDelete, setShowDelete] = useState(false)
 
   const { data: s, isLoading } = useDocument<Shipment>('shipments', id)
   const { remove } = useFirestoreMutation<Shipment>('shipments', {
     onSuccess: () => navigate('/shipments'),
   })
+
+  const { data: files, refetch: refetchFiles } = useQuery<UploadedFile[]>({
+    queryKey: ['shipment-files', id],
+    queryFn: async () => {
+      if (!id) return []
+      const q = query(collection(db, 'shipments', id, 'files'))
+      const snap = await getDocs(q)
+      return snap.docs.map((d) => d.data() as UploadedFile)
+    },
+    enabled: !!id,
+  })
+
+  const handleUpload = async (file: UploadedFile) => {
+    await addDoc(collection(db, 'shipments', id!, 'files'), file)
+    refetchFiles()
+  }
+
+  const handleRemoveFile = async (file: UploadedFile) => {
+    const q = query(collection(db, 'shipments', id!, 'files'), where('path', '==', file.path))
+    const snap = await getDocs(q)
+    for (const snapDoc of snap.docs) {
+      await deleteDoc(fbDoc(db, 'shipments', id!, 'files', snapDoc.id))
+    }
+    refetchFiles()
+  }
 
   if (isLoading) {
     return (
@@ -78,6 +101,24 @@ export function ShipmentDetailPage() {
         <StatCard title="Gross Profit" value={formatCurrency(profit)} variant={profit >= 0 ? 'success' : 'danger'} />
         <StatCard title="Margin" value={s.revenue ? `${((profit / s.revenue) * 100).toFixed(1)}%` : '0%'} variant={profit >= 0 ? 'success' : 'danger'} />
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base flex items-center gap-2">
+            <Paperclip className="w-4 h-4" />
+            Documents
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <FileUpload
+            path={`shipments/${id}`}
+            accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg"
+            onUpload={handleUpload}
+            onRemove={handleRemoveFile}
+            existingFiles={files || []}
+          />
+        </CardContent>
+      </Card>
 
       {s.notes && (
         <Card>

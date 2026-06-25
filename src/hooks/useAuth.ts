@@ -80,6 +80,16 @@ export function useAuth() {
     return unsubscribe
   }, [setUser, setLoading, clearUser])
 
+  async function loadUserFromFirestore(firebaseUid: string) {
+    const userRef = doc(db, 'users', firebaseUid)
+    const userDoc = await getDoc(userRef)
+    if (userDoc.exists()) {
+      setUser({ id: firebaseUid, ...(userDoc.data() as Omit<User, 'id'>) })
+      return true
+    }
+    return false
+  }
+
   const login = async (email: string, password: string) => {
     if (isMock) {
       const users = getMockUsers()
@@ -91,6 +101,9 @@ export function useAuth() {
       return
     }
     await signInWithEmailAndPassword(auth, email, password)
+    if (auth.currentUser) {
+      await loadUserFromFirestore(auth.currentUser.uid)
+    }
   }
 
   const signup = async (email: string, password: string, name: string) => {
@@ -113,6 +126,7 @@ export function useAuth() {
       email,
       role: 'PENDING',
     })
+    setUser({ id: credential.user.uid, name, email, role: 'PENDING' })
     if (credential.user) {
       await sendEmailVerification(credential.user)
     }
@@ -125,7 +139,19 @@ export function useAuth() {
       return
     }
     const provider = new GoogleAuthProvider()
-    await signInWithPopup(auth, provider)
+    const result = await signInWithPopup(auth, provider)
+    if (result.user) {
+      const loaded = await loadUserFromFirestore(result.user.uid)
+      if (!loaded) {
+        const newUser = {
+          name: result.user.displayName || result.user.email?.split('@')[0] || 'User',
+          email: result.user.email || '',
+          role: 'PENDING' as const,
+        }
+        await setDoc(doc(db, 'users', result.user.uid), newUser)
+        setUser({ id: result.user.uid, ...newUser })
+      }
+    }
   }
 
   const logout = async () => {

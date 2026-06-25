@@ -14,6 +14,11 @@ import { CustomerDetailPage } from '@/pages/customer-detail'
 import { ShipmentsPage } from '@/pages/shipments'
 import { ShipmentDetailPage } from '@/pages/shipment-detail'
 import { FleetPage } from '@/pages/fleet'
+import { ExpensesPage } from '@/pages/expenses'
+import { PayrollPage } from '@/pages/payroll'
+import { TimeOffPage } from '@/pages/time-off'
+import { ReviewsPage } from '@/pages/reviews'
+import { NotificationsPage } from '@/pages/notifications'
 import { InvoicesPage } from '@/pages/invoices'
 import { ReportsPage } from '@/pages/reports'
 import { SettingsPage } from '@/pages/settings'
@@ -62,9 +67,14 @@ function AppRoutes() {
         <Route path="/shipments" element={<ShipmentsPage />} />
         <Route path="/shipments/:id" element={<ShipmentDetailPage />} />
         <Route path="/fleet" element={<FleetPage />} />
+        <Route path="/expenses" element={<ExpensesPage />} />
+        <Route path="/payroll" element={<PayrollPage />} />
+        <Route path="/time-off" element={<TimeOffPage />} />
+        <Route path="/reviews" element={<ReviewsPage />} />
         <Route path="/invoices" element={<InvoicesPage />} />
         <Route path="/reports" element={<ReportsPage />} />
         <Route path="/settings" element={<SettingsPage />} />
+        <Route path="/notifications" element={<NotificationsPage />} />
       </Route>
       <Route
         path="/invoices/:id/receipt"

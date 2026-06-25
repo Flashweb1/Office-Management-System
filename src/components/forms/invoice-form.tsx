@@ -17,6 +17,7 @@ interface InvoiceFormProps {
   open: boolean
   onClose: () => void
   onSubmit: (data: InvoiceFormData) => void
+  initial?: InvoiceFormData
 }
 
 const defaultData: InvoiceFormData = {
@@ -27,8 +28,8 @@ const defaultData: InvoiceFormData = {
   shipmentId: '',
 }
 
-export function InvoiceForm({ open, onClose, onSubmit }: InvoiceFormProps) {
-  const [data, setData] = useState<InvoiceFormData>(defaultData)
+export function InvoiceForm({ open, onClose, onSubmit, initial }: InvoiceFormProps) {
+  const [data, setData] = useState<InvoiceFormData>(initial || defaultData)
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -38,7 +39,7 @@ export function InvoiceForm({ open, onClose, onSubmit }: InvoiceFormProps) {
   }
 
   return (
-    <Dialog open={open} onClose={onClose} title="New Invoice" description="Create an invoice for a customer.">
+    <Dialog open={open} onClose={onClose} title={initial ? 'Edit Invoice' : 'New Invoice'} description={initial ? 'Update invoice details.' : 'Create an invoice for a customer.'}>
       <form onSubmit={handleSubmit}>
         <DialogContent className="space-y-4">
           <div className="grid gap-4 sm:grid-cols-2">
@@ -69,7 +70,7 @@ export function InvoiceForm({ open, onClose, onSubmit }: InvoiceFormProps) {
         </DialogContent>
         <DialogFooter>
           <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>
-          <Button type="submit">Create Invoice</Button>
+          <Button type="submit">{initial ? 'Save Changes' : 'Create Invoice'}</Button>
         </DialogFooter>
       </form>
     </Dialog>

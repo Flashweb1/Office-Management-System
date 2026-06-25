@@ -10,21 +10,40 @@ import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import { useAuthStore } from '@/store/authStore'
 import { useToastStore } from '@/store/toastStore'
-import { Mail, CheckCircle, XCircle, RefreshCw } from 'lucide-react'
+import { useCompanySettings } from '@/hooks/useCompanySettings'
+import { Mail, CheckCircle, XCircle, Building2 } from 'lucide-react'
 
 export function SettingsPage() {
   const { user, setUser } = useAuthStore()
   const addToast = useToastStore((s) => s.addToast)
+  const { settings, saveSettings } = useCompanySettings()
+
   const [name, setName] = useState(user?.name || '')
   const [phone, setPhone] = useState('')
   const [saving, setSaving] = useState(false)
 
-  const [currentPassword, setCurrentPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
   const [confirmNewPassword, setConfirmNewPassword] = useState('')
   const [changingPassword, setChangingPassword] = useState(false)
 
   const [sendingVerification, setSendingVerification] = useState(false)
+
+  const [companyName, setCompanyName] = useState(settings.name)
+  const [companyTagline, setCompanyTagline] = useState(settings.tagline)
+  const [companyAddress, setCompanyAddress] = useState(settings.address)
+  const [companyTaxId, setCompanyTaxId] = useState(settings.taxId)
+  const [companyPhone, setCompanyPhone] = useState(settings.phone)
+  const [companyEmail, setCompanyEmail] = useState(settings.email)
+  const [savingCompany, setSavingCompany] = useState(false)
+
+  useEffect(() => {
+    setCompanyName(settings.name)
+    setCompanyTagline(settings.tagline)
+    setCompanyAddress(settings.address)
+    setCompanyTaxId(settings.taxId)
+    setCompanyPhone(settings.phone)
+    setCompanyEmail(settings.email)
+  }, [settings])
 
   useEffect(() => {
     if (user && !user.avatar) {
@@ -70,7 +89,6 @@ export function SettingsPage() {
       if (auth.currentUser) {
         await updatePassword(auth.currentUser, newPassword)
         addToast('Password changed successfully.', 'success')
-        setCurrentPassword('')
         setNewPassword('')
         setConfirmNewPassword('')
       }
@@ -93,6 +111,19 @@ export function SettingsPage() {
     } finally {
       setSendingVerification(false)
     }
+  }
+
+  const handleSaveCompany = async () => {
+    setSavingCompany(true)
+    await saveSettings({
+      name: companyName,
+      tagline: companyTagline,
+      address: companyAddress,
+      taxId: companyTaxId,
+      phone: companyPhone,
+      email: companyEmail,
+    })
+    setSavingCompany(false)
   }
 
   if (!user) return null
@@ -145,6 +176,47 @@ export function SettingsPage() {
           )}
           <Button onClick={handleSaveProfile} disabled={saving}>
             {saving ? 'Saving...' : 'Save Changes'}
+          </Button>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base flex items-center gap-2">
+            <Building2 className="w-4 h-4" />
+            Company
+          </CardTitle>
+          <CardDescription>Your company details appear on receipts and reports.</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="sm:col-span-2">
+              <Label>Company Name</Label>
+              <Input value={companyName} onChange={(e) => setCompanyName(e.target.value)} placeholder="LogiCommand" />
+            </div>
+            <div className="sm:col-span-2">
+              <Label>Tagline</Label>
+              <Input value={companyTagline} onChange={(e) => setCompanyTagline(e.target.value)} placeholder="Logistics Enterprise Management" />
+            </div>
+            <div className="sm:col-span-2">
+              <Label>Address</Label>
+              <Input value={companyAddress} onChange={(e) => setCompanyAddress(e.target.value)} placeholder="123 Logistics Ave, New York, NY 10001" />
+            </div>
+            <div>
+              <Label>Tax ID / EIN</Label>
+              <Input value={companyTaxId} onChange={(e) => setCompanyTaxId(e.target.value)} placeholder="XX-XXXXXXX" />
+            </div>
+            <div>
+              <Label>Phone</Label>
+              <Input value={companyPhone} onChange={(e) => setCompanyPhone(e.target.value)} placeholder="+1-555-0000" />
+            </div>
+            <div className="sm:col-span-2">
+              <Label>Email</Label>
+              <Input type="email" value={companyEmail} onChange={(e) => setCompanyEmail(e.target.value)} placeholder="info@logicommand.com" />
+            </div>
+          </div>
+          <Button onClick={handleSaveCompany} disabled={savingCompany}>
+            {savingCompany ? 'Saving...' : 'Save Company Settings'}
           </Button>
         </CardContent>
       </Card>

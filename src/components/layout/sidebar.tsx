@@ -13,6 +13,10 @@ import {
   Settings,
   LogOut,
   X,
+  Receipt,
+  DollarSign,
+  CalendarDays,
+  Star,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -36,6 +40,10 @@ const navItems: NavItem[] = [
   { label: 'Customers', path: '/customers', icon: Building2, roles: ['CEO', 'OPS_MANAGER', 'FINANCE', 'SALES', 'SUPPORT'] },
   { label: 'Shipments', path: '/shipments', icon: Truck, roles: ['CEO', 'OPS_MANAGER', 'SALES'] },
   { label: 'Fleet', path: '/fleet', icon: ClipboardList, roles: ['CEO', 'OPS_MANAGER'] },
+  { label: 'Expenses', path: '/expenses', icon: Receipt, roles: ['CEO', 'OPS_MANAGER', 'FINANCE'] },
+  { label: 'Payroll', path: '/payroll', icon: DollarSign, roles: ['CEO', 'FINANCE'] },
+  { label: 'Time Off', path: '/time-off', icon: CalendarDays, roles: ['CEO', 'OPS_MANAGER', 'FINANCE', 'SALES', 'SUPPORT'] },
+  { label: 'Reviews', path: '/reviews', icon: Star, roles: ['CEO', 'OPS_MANAGER'] },
   { label: 'Invoices', path: '/invoices', icon: FileText, roles: ['CEO', 'FINANCE'] },
   { label: 'Reports', path: '/reports', icon: BarChart3, roles: ['CEO', 'FINANCE'] },
   { label: 'Settings', path: '/settings', icon: Settings, roles: ['CEO', 'OPS_MANAGER', 'FINANCE', 'SALES', 'SUPPORT', 'PENDING'] },

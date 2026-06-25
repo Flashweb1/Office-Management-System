@@ -130,3 +130,78 @@ export interface AIInsight {
   seen: boolean
   createdAt: string
 }
+
+export interface PayrollRun {
+  id: string
+  periodStart: string
+  periodEnd: string
+  processedAt: string
+  status: 'draft' | 'processed'
+  totalGross: number
+  totalDeductions: number
+  totalNet: number
+  processedBy: string
+}
+
+export interface PayStub {
+  id: string
+  payrollRunId: string
+  staffId: string
+  staffName: string
+  grossPay: number
+  deductions: {
+    tax: number
+    insurance: number
+    retirement: number
+    other: number
+  }
+  netPay: number
+  hoursWorked: number
+}
+
+export interface TimeOff {
+  id: string
+  staffId: string
+  staffName: string
+  type: 'vacation' | 'sick' | 'personal'
+  startDate: string
+  endDate: string
+  reason: string
+  status: 'pending' | 'approved' | 'rejected'
+  approvedBy?: string
+  createdAt: string
+}
+
+export interface Timesheet {
+  id: string
+  staffId: string
+  staffName: string
+  weekStart: string
+  hours: {
+    mon: number
+    tue: number
+    wed: number
+    thu: number
+    fri: number
+    sat: number
+    sun: number
+  }
+  total: number
+  status: 'draft' | 'submitted' | 'approved'
+  approvedBy?: string
+  createdAt: string
+}
+
+export interface Review {
+  id: string
+  staffId: string
+  staffName: string
+  reviewerId: string
+  reviewerName: string
+  date: string
+  rating: number
+  strengths: string
+  improvements: string
+  goals: string
+  status: 'draft' | 'completed'
+}
