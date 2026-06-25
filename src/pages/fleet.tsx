@@ -62,7 +62,7 @@ export function FleetPage() {
       plateNumber: data.plateNumber,
       model: data.model || '',
       maintenanceDate: data.maintenanceDate || '',
-      fuelEfficiency: data.fuelEfficiency ? Number(data.fuelEfficiency) : null,
+      fuelEfficiency: data.fuelEfficiency ? Number(data.fuelEfficiency) : undefined,
       status: data.status,
     })
     setShowTruckForm(false)
@@ -76,7 +76,7 @@ export function FleetPage() {
         plateNumber: data.plateNumber,
         model: data.model || '',
         maintenanceDate: data.maintenanceDate || '',
-        fuelEfficiency: data.fuelEfficiency ? Number(data.fuelEfficiency) : null,
+        fuelEfficiency: data.fuelEfficiency ? Number(data.fuelEfficiency) : undefined,
         status: data.status,
       },
     })

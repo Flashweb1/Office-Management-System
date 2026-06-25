@@ -51,9 +51,9 @@ export function InvoicesPage() {
       amount: Number(data.amount),
       dueDate: data.dueDate,
       paid: data.status === 'paid',
-      paidDate: data.status === 'paid' ? new Date().toISOString() : null,
-      paymentRef: data.status === 'paid' ? payRef || null : null,
-      shipmentId: data.shipmentId || null,
+      paidDate: data.status === 'paid' ? new Date().toISOString() : undefined,
+      paymentRef: data.status === 'paid' ? payRef || undefined : undefined,
+      shipmentId: data.shipmentId || undefined,
       createdAt: new Date().toISOString(),
     })
     setShowForm(false)
@@ -67,8 +67,8 @@ export function InvoicesPage() {
         amount: Number(data.amount),
         dueDate: data.dueDate,
         paid: data.status === 'paid',
-        paidDate: data.status === 'paid' ? (editingInvoice.paidDate || new Date().toISOString()) : null,
-        shipmentId: data.shipmentId || null,
+        paidDate: data.status === 'paid' ? (editingInvoice.paidDate || new Date().toISOString()) : undefined,
+        shipmentId: data.shipmentId || undefined,
       })
       addToast('Invoice updated successfully.', 'success')
       queryClient.invalidateQueries({ queryKey: ['invoices'] })
@@ -91,7 +91,7 @@ export function InvoicesPage() {
       await updateDoc(doc(db, 'invoices', payTarget.id), {
         paid: true,
         paidDate: new Date().toISOString(),
-        paymentRef: payRef || null,
+        paymentRef: payRef || undefined,
       })
       addToast(`Invoice ${payTarget.id} marked as paid.`, 'success')
       queryClient.invalidateQueries({ queryKey: ['invoices'] })
